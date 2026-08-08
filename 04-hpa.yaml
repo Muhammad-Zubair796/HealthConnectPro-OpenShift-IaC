@@ -1,0 +1,22 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: healthconnect-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: healthconnect-app # This connects the HPA to our Deployment
+  
+  # --- HERE ARE YOUR MIN AND MAX WORDS ---
+  minReplicas: 1 # Never go below 1 running pod
+  maxReplicas: 3 # Never go above 3 running pods
+  
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80 # Scale up if CPU hits 80% of the requested 100m
+EOF

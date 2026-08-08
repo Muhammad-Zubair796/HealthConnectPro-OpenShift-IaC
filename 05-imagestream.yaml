@@ -1,0 +1,6 @@
+cat <<EOF > 06-imagestream.yaml
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: healthconnect-image # This matches the name we put in the Deployment!
+EOF

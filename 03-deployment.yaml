@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: healthconnect-app
+  labels:
+    app: healthconnect
+spec:
+  replicas: 1 # The HPA will manage this automatically between 1 and 3
+  selector:
+    matchLabels:
+      app: healthconnect
+  template:
+    metadata:
+      labels:
+        app: healthconnect
+    spec:
+      containers:
+        - name: healthconnect-container
+          image: healthconnect-image:latest 
+          # --- FIXED STARTUP COMMAND ---
+          # This ensures Streamlit stays running and doesn't CrashLoop
+          command: ["/bin/bash", "-c", "streamlit run app.py --server.port 8501 --server.address 0.0.0.0"]
+          
+          ports:
+            - containerPort: 8501
+          
+          # --- RESOURCE LIMITS (REQUIRED FOR HPA) ---
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          
+          # --- INJECTING SECRETS ---
+          envFrom:
+            - secretRef:
+                name: healthconnect-secrets
+          
+          # --- ENVIRONMENT OVERRIDES ---
+          env:
+            - name: DATA_DIR
+              value: "/data" # Path to the PVC mount
+            - name: HOME
+              value: "/tmp" # Fixes random UID permission issues
+            - name: STREAMLIT_CONFIG_DIR
+              value: "/tmp/.streamlit" # Fixes Streamlit write-access errors
+          
+          # --- ATTACHING THE PVC (DATABASE STORAGE) ---
+          volumeMounts:
+            - name: db-storage
+              mountPath: /data
+      
+      volumes:
+        - name: db-storage
+          persistentVolumeClaim:
+            claimName: healthconnect-db-pvc

@@ -1,0 +1,22 @@
+cat <<EOF > 08-pipelinerun.yaml
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  # We use generateName instead of name. 
+  # This adds random letters to the end so you can run it multiple times!
+  generateName: healthconnect-run-
+spec:
+  pipelineRef:
+    name: build-and-deploy-pipeline # Points to the recipe we just made
+  workspaces:
+    - name: shared-workspace
+      # This creates a temporary 1GB hard drive just for the build process.
+      # It gets deleted when the build is done.
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+EOF

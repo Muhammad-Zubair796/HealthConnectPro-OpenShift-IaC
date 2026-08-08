@@ -1,0 +1,45 @@
+cat <<EOF > 07-pipeline.yaml
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-deploy-pipeline
+spec:
+  workspaces:
+    - name: shared-workspace
+  params:
+    - name: git-url
+      type: string
+      default: "https://github.com/Muhammad-Zubair796/HealthConnectPro"
+    - name: image-name
+      type: string
+      default: "image-registry.openshift-image-registry.svc:5000/\$(context.pipelineRun.namespace)/healthconnect-image:latest"
+  tasks:
+    - name: fetch-repository
+      taskRef:
+        name: git-clone
+        kind: Task
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: \$(params.git-url)
+        - name: deleteExisting
+          value: "true"
+    - name: build-image
+      taskRef:
+        name: s2i
+        kind: Task
+      runAfter:
+        - fetch-repository
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      params:
+        - name: BUILDER_IMAGE
+          value: "registry.access.redhat.com/ubi9/python-311:latest"
+        - name: IMAGE
+          value: \$(params.image-name)
+        - name: TLSVERIFY
+          value: "false"
+EOF

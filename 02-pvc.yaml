@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: healthconnect-db-pvc
+  # The name we will use to attach this storage to our app later
+spec:
+  accessModes:
+    - ReadWriteOnce
+    # ReadWriteOnce means this volume can be mounted as read-write by a single node. 
+    # This is standard for SQLite databases.
+  resources:
+    requests:
+      storage: 1Gi
+      # We are asking OpenShift for 1 Gigabyte of storage. 
+      # SQLite databases are tiny, so 1Gi is more than enough for text data.

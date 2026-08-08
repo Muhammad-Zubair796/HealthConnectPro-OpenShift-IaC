@@ -1,0 +1,18 @@
+cat <<EOF > 09-route-final.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: healthconnect-route
+spec:
+  to:
+    kind: Service
+    name: healthconnect 
+  port:
+    targetPort: 8501
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+EOF
+
+# 3. Apply it
+oc apply -f 09-route-final.yaml
